@@ -10,6 +10,10 @@ WORKDIR = '{}/work'.format(os.getcwd())
 # will be created if it doesn't exist.
 KEYDIR = '{}/extra/keys'.format(os.getcwd())
 
+# absolute path to staged ipks. see README for details.
+IPK_STAGING_DIR = '{}/staging'.format(os.getcwd())
+IPK_FORCE_DEPENDS = True
+
 ISOHDPFX = '{}/extra/isohdpfx.bin'.format(os.getcwd())
 
 # don't rm work dir after script completes, even if it succeeds.

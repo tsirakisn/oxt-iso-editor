@@ -1,7 +1,7 @@
-from settings import WORKDIR
+from settings import WORKDIR, IPK_STAGING_DIR
 from utils import (
     shell, mount_ext3_rootfs, package_ext3_rootfs, update_xc_packages_file,
-    print_mount_message_and_wait
+    print_mount_message_and_wait, check_ipks, install_ipks
 )
 import os
 import shutil
@@ -10,6 +10,10 @@ import shutil
 
 def modify_dom0():
     mount_ext3_rootfs('dom0')
+
+    if check_ipks('dom0'):
+        install_ipks('/mnt', '{}/dom0'.format(IPK_STAGING_DIR))
+
     print_mount_message_and_wait('dom0', mountpt='/mnt')
     package_ext3_rootfs('dom0')
     update_xc_packages_file('dom0')

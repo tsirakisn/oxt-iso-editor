@@ -1,4 +1,6 @@
-from settings import WORKDIR, KEYDIR, ISOHDPFX
+from settings import (
+    WORKDIR, KEYDIR, ISOHDPFX, IPK_STAGING_DIR, IPK_FORCE_DEPENDS
+)
 from sys import exc_info
 from traceback import extract_tb
 import glob
@@ -228,3 +230,53 @@ def generate_update_tarball(out_tarball):
     print('tarball successfully generated to "{}"'.format(out_tarball))
 
     chown_user(out_tarball)
+
+def check_ipks(component):
+    ipkdir = '{}/{}'.format(IPK_STAGING_DIR, component)
+
+    if not os.path.exists(ipkdir):
+        return False
+
+    ipks = glob.glob('{}/*.ipk'.format(ipkdir))
+    if not ipks:
+        return False
+
+    show_ipks(ipks, component)
+    return prompt_user('install?')
+
+def show_ipks(ipks, component):
+    print('\n{} ipks found in {} staging dir:'.format(len(ipks), component))
+    for ipk in ipks:
+        print('- {}'.format(os.path.basename(ipk)))
+    print()
+
+def install_ipks(chroot_dir, ipk_dir):
+    print('staging ipks')
+    os.mkdir('{}/tmp/ipks'.format(chroot_dir))
+    ipks = glob.glob('{}/*.ipk'.format(ipk_dir))
+    for ipk in ipks:
+        shutil.copy(ipk, '{}/tmp/ipks'.format(chroot_dir))
+
+    print('installing ipks')
+    orig_cwd = os.getcwd()
+    root = os.open('/', os.O_RDONLY)
+    os.chroot(chroot_dir)
+
+    args = '--force-downgrade --force-reinstall'
+    if IPK_FORCE_DEPENDS:
+        args += ' --force-depends'
+
+    ipks = ' '.join(glob.glob('/tmp/ipks/*.ipk'))
+    ipk_basenames = ' '.join([os.path.basename(ipk) for ipk in ipks.split()])
+    try:
+        print('installing: {}'.format(ipk_basenames))
+        shell('opkg install {} {}'.format(args, ipks), cwd='/')
+    except:
+        print('warn: unable to install ipks')
+
+    os.fchdir(root)
+    os.chroot('.')
+    os.close(root)
+    os.chdir(orig_cwd)
+
+    shutil.rmtree('{}/tmp/ipks'.format(chroot_dir))

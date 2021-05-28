@@ -21,3 +21,9 @@ Note: only master supported for now
     - see `./iso_edit.py -h` for all options
 3. You can also pass the `-u` flag  to generate an update.tar file with your changes.
 4. When you're done making your changes, select the "finish" option to finalize them. The iso will be dev-signed at this point.
+
+#### Auto-installing ipks
+
+- This feature is very sparse for now
+- If you want to have ipks installed during the course of your modifications (dom0 only right now), you can create a staging dir at "./staging/dom0" and put any ipks you want installed in that dir
+- Note the script will still prompt you before installing anything
