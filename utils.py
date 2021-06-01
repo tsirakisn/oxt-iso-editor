@@ -109,6 +109,14 @@ def print_mount_message_and_wait(component, mountpt='/mnt'):
     print('======================================================')
     input()
 
+def mktmp_work_dir(name):
+    tmpdir = '{}/{}'.format(WORKDIR, name)
+    if os.path.exists(tmpdir):
+        shutil.rmtree(tmpdir)
+    os.mkdir(tmpdir)
+
+    return tmpdir
+
 def mount_ext3_rootfs(name):
     print('extracting {} rootfs'.format(name))
     shell('gunzip {}-rootfs*.ext*'.format(name), cwd='{}/packages.main'.format(WORKDIR))
@@ -120,6 +128,19 @@ def package_ext3_rootfs(name):
     print('re-packaging {} rootfs'.format(name))
     umount('/mnt')
     shell('gzip {}-rootfs*'.format(name), cwd='{}/packages.main'.format(WORKDIR))
+
+def extract_initrd(initrd, tmpdir):
+    print('extracting {}'.format(initrd))
+    os.rename(initrd, '{}.gz'.format(initrd))
+
+    shell('gunzip {}.gz'.format(initrd))
+    shell('cpio -idm < {}'.format(initrd), cwd=tmpdir)
+
+def package_initrd(initrd, tmpdir):
+    print('re-packaging {}'.format(initrd))
+    shell('find . | cpio -H newc -o > {}'.format(initrd), cwd=tmpdir)
+    shell('gzip {}'.format(initrd))
+    os.rename('{}.gz'.format(initrd), initrd)
 
 def get_xc_packages_line(component):
     with open('{}/packages.main/XC-PACKAGES'.format(WORKDIR)) as f:

@@ -10,7 +10,7 @@ if not os.getcwd().endswith('oxt-iso-editor'):
     sys.exit(1)
 
 from settings import WORKDIR, KEYDIR, DEBUG_WORKDIR, ISOHDPFX
-from oxt import modify_dom0, modify_installer
+from oxt import modify_dom0, modify_installer, modify_initramfs
 from utils import (
     print_traceback, update_xc_repository_file, sign_files, generate_iso,
     prompt_user, normalize_path, chown_user, mount_iso_and_copy_files,
@@ -128,6 +128,7 @@ def run_interactive_menu():
 
     menu = SimpleMenu()
     menu.add_option('edit dom0 rootfs', modify_dom0)
+    menu.add_option('edit initramfs rootfs', modify_initramfs)
     menu.add_option('edit installer rootfs (parts 1 & 2)', modify_installer)
     menu.add_exit_option('finalize changes')
 

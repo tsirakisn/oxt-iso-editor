@@ -1,7 +1,8 @@
 from settings import WORKDIR, IPK_STAGING_DIR
 from utils import (
     shell, mount_ext3_rootfs, package_ext3_rootfs, update_xc_packages_file,
-    print_mount_message_and_wait, check_ipks, install_ipks
+    print_mount_message_and_wait, check_ipks, install_ipks, mktmp_work_dir,
+    extract_initrd, package_initrd
 )
 import os
 import shutil
@@ -57,14 +58,27 @@ def package_installerfs(tmpdir):
     )
 
 def modify_installer():
-    tmpdir = '{}/installerfs'.format(WORKDIR)
-    if os.path.exists(tmpdir):
-        shutil.rmtree(tmpdir)
-    os.mkdir(tmpdir)
-
+    tmpdir = mktmp_work_dir('installerfs')
     extract_installerfs(tmpdir)
     print_mount_message_and_wait('installer', tmpdir)
 
     package_installerfs(tmpdir)
     shutil.rmtree(tmpdir)
     update_xc_packages_file('control')
+
+############ initramfs ############
+
+def modify_initramfs():
+    mount_ext3_rootfs('dom0')
+
+    initrd = '/mnt/boot/initrd'
+    tmpdir = mktmp_work_dir('initramfs')
+    extract_initrd(initrd, tmpdir)
+
+    print_mount_message_and_wait('initramfs', tmpdir)
+
+    package_initrd(initrd, tmpdir)
+    package_ext3_rootfs('dom0')
+
+    update_xc_packages_file('dom0')
+    shutil.rmtree(tmpdir)
